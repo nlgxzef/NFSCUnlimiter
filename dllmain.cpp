@@ -246,25 +246,22 @@ int Init()
 
 	// Main
 	CarCount = Settings.ReadInteger("Main", "CarModelIDLimit", 127);
-	ReplacementCar = Settings.ReadInteger("Main", "ReplacementModel", 127);
-	TrafficCarCount = Settings.ReadInteger("Main", "TrafficCarCount", 127);
+	ReplacementCar = Settings.ReadInteger("Main", "ReplacementModel", 1);
+	TrafficCarCount = Settings.ReadInteger("Main", "TrafficCarCount", 20);
 	// Fixes
 	DisappearingWheelsFix = Settings.ReadInteger("Fixes", "DisappearingWheelsFix", 1) == 1;
 	MissingPartsFix = Settings.ReadInteger("Fixes", "MissingPartsFix", 1) == 1;
 	VinylsFix = Settings.ReadInteger("Fixes", "VinylsFix", 1) == 1;
 	SecondaryLogoFix = Settings.ReadInteger("Fixes", "SecondaryLogoFix", 1) == 1;
-	OnlineLoginCrashFix = Settings.ReadInteger("Fixes", "OnlineLoginCrashFix", 1) == 1;
+	//OnlineLoginCrashFix = Settings.ReadInteger("Fixes", "OnlineLoginCrashFix", 1) == 1;
 	// Misc
 	ExpandMemoryPools = Settings.ReadInteger("Misc", "ExpandMemoryPools", 0) == 1;
 
 	if (MissingPartsFix)
 	{
-		
 		// Fix Mising Parts (RideInfo::SetStockParts)
 		injector::MakeRangedNOP(0x7DA7AD, 0x7DA7B3, true);
 		injector::WriteMemory<WORD>(0x7DA7AD, 0xC030, true); // xor al,al
-
-		injector::MemoryFill(0xA73540, 0, 1264, true);
 	}
 	
 	// Car Type Unlimiter
@@ -319,10 +316,10 @@ int Init()
 	}
 
 	// Online Login Crash Fix
-	if (OnlineLoginCrashFix)
+	/*if (OnlineLoginCrashFix)
 	{
-		injector::MakeNOP(0x60BA7F, 2, true);
-	}
+		injector::MakeNOP(0x0060BAB7, 10, true);
+	}*/
 	
 	// Expand Memory Pools (ty Berkay)
 	if (ExpandMemoryPools)
