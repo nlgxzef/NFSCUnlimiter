@@ -5,8 +5,68 @@
 #include "includes\injector\injector.hpp"
 #include "includes\IniReader.h"
 
-int CarCount, ReplacementCar, TrafficCarCount;
-bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, OnlineLoginCrashFix, MissingPartsFix, VinylsFix;
+#define CarTypeInfoArray 0xB74CCC
+#define SingleCarTypeInfoBlockSize 0xD0
+
+int CarArraySize, CarCount, ReplacementCar, TrafficCarCount;
+bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, OnlineLoginCrashFix, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix;
+
+bool IsCop(BYTE CarTypeID)
+{
+	return *(BYTE*)((*(DWORD*)CarTypeInfoArray) + CarTypeID * SingleCarTypeInfoBlockSize + 0x94) == 1;
+}
+
+DWORD GetPVehicle = 0x412520;
+DWORD GetFrontend = 0x4ABF30;
+DWORD Attrib_Instance_dtInstance = 0x469870;
+DWORD bStringHash = 0x471050;
+
+void __declspec(naked) FECarRecord_GetRegion()
+{
+	__asm
+	{
+		sub esp, 0x20
+		push esi
+		push edi
+		mov esi, ecx
+		mov eax, [esi + 0x08]
+		push 00
+		push eax
+		lea ecx, [esp + 0x10]
+		call GetPVehicle
+		mov ecx, [esp + 0x0C]
+		mov edi, [ecx + 0x24]
+		lea ecx, [esp + 0x08]
+		call Attrib_Instance_dtInstance
+		push edi
+		call bStringHash
+		mov eax, [esi + 0x0C]
+		add esp, 4
+		test ah, 01
+		je loc_4BA95F
+		pop edi
+		xor eax, eax
+		pop esi
+		add esp, 0x20
+		ret
+
+		loc_4BA95F:
+		mov edx, [esi + 4]
+		push 00
+		push edx
+		lea ecx, [esp + 0x20]
+		call GetFrontend
+		mov eax, [esp + 0x1C]
+		mov esi, [eax + 0x24]
+		lea ecx, [esp + 0x18]
+		call Attrib_Instance_dtInstance
+		pop edi
+		mov eax, esi
+		pop esi
+		add esp, 0x20
+		ret
+	}
+}
 
 void __declspec(naked) CarCountCodeCave_RideInfo_SetPart()
 {
@@ -240,12 +300,81 @@ void __declspec(naked) CarCountCodeCave_PVehicle_Resource_Resource()
 	}
 }
 
+void __declspec(naked) DoUnlimiterStuffCodeCave()
+{
+	// Get count
+	__asm
+	{
+		mov dword ptr ds : [CarTypeInfoArray] , edx
+		sub edx, 0x0C
+		mov edx, [edx]
+		mov CarArraySize, edx
+		mov edx, dword ptr ds : [CarTypeInfoArray]
+		pushad
+	}
+
+	CarArraySize -= 8;
+	CarCount = CarArraySize / SingleCarTypeInfoBlockSize;
+
+	// Do required stuff
+	injector::WriteMemory<int>(0x7B11F5, CarCount, true);
+	injector::WriteMemory<int>(0x7B0270, CarCount * SingleCarTypeInfoBlockSize, true); // CarPartDatabase::GetCarType
+	injector::WriteMemory<int>(0x850819, CarCount * SingleCarTypeInfoBlockSize, true); // sub_850740
+
+	// Continue
+	__asm
+	{
+		popad
+		push 0x7CD30C
+		retn
+	}
+}
+
+void __declspec(naked) AddOnCopsDamageFixCodeCave()
+{
+	__asm
+	{
+		push eax // Car Type ID
+		call IsCop
+		add esp, 4
+		cmp al, 1
+		je jDamageParts
+		jmp jWindowDamage
+
+		jDamageParts :
+			push 0x7E62AB
+			retn
+
+		jWindowDamage :
+			push 0x7E62E2
+			retn
+	}
+}
+
+void __declspec(naked) SuperChargerFixCodeCave()
+{
+	__asm
+	{
+		cmp esi, 0
+		je UseSuperCharger
+		jmp UseTurbo
+
+		UseSuperCharger:
+			push 0x4B3878
+			retn
+
+		UseTurbo :
+			push 0x4B386A
+			retn
+	}
+}
+
 int Init()
 {
 	CIniReader Settings("NFSCUnlimiterSettings.ini");
 
 	// Main
-	CarCount = Settings.ReadInteger("Main", "CarModelIDLimit", 127);
+	//CarCount = Settings.ReadInteger("Main", "CarModelIDLimit", 127);
 	ReplacementCar = Settings.ReadInteger("Main", "ReplacementModel", 1);
 	TrafficCarCount = Settings.ReadInteger("Main", "TrafficCarCount", 20);
 	// Fixes
@@ -253,6 +382,8 @@ int Init()
 	MissingPartsFix = Settings.ReadInteger("Fixes", "MissingPartsFix", 1) == 1;
 	VinylsFix = Settings.ReadInteger("Fixes", "VinylsFix", 1) == 1;
 	SecondaryLogoFix = Settings.ReadInteger("Fixes", "SecondaryLogoFix", 1) == 1;
+	AddOnCopsDamageFix = Settings.ReadInteger("Fixes", "AddOnCopsDamageFix", 1) == 1;
+	SuperChargerFix = Settings.ReadInteger("Fixes", "SuperChargerFix", 1) == 1;
 	//OnlineLoginCrashFix = Settings.ReadInteger("Fixes", "OnlineLoginCrashFix", 1) == 1;
 	// Misc
 	ExpandMemoryPools = Settings.ReadInteger("Misc", "ExpandMemoryPools", 0) == 1;
@@ -264,6 +395,9 @@ int Init()
 		injector::WriteMemory<WORD>(0x7DA7AD, 0xC030, true); // xor al,al
 	}
 	
+	// Count Cars Automatically
+	injector::MakeJMP(0x7CD306, DoUnlimiterStuffCodeCave, true);
+
 	// Car Type Unlimiter
 	injector::MakeJMP(0x7D67DB, CarCountCodeCave_RideInfo_SetPart, true);
 	injector::MakeJMP(0x7D703B, CarCountCodeCave_RideInfo_FillWithPreset, true);
@@ -280,12 +414,8 @@ int Init()
 	injector::MakeJMP(0x7D0D91, CarCountCodeCave_RasterizationManager_Initialize, true);
 	injector::MakeJMP(0x6C092B, CarCountCodeCave_PVehicle_Resource_Resource, true);
 
-	injector::WriteMemory<int>(0x7B11F5, CarCount, true);
-
-	injector::WriteMemory<int>(0x7B0270, CarCount * 0xD0, true); // CarPartDatabase::GetCarType
-	injector::WriteMemory<int>(0x7B0279, ReplacementCar, true); // Replacement model if model not found
-
-	injector::WriteMemory<int>(0x850819, CarCount * 0xD0, true); // sub_850740
+	// Replacement model if model is not found in the array
+	injector::WriteMemory<int>(0x7B0279, ReplacementCar, true); 
 
 	// Can apply vinyls to new cars
 	if (VinylsFix)
@@ -321,7 +451,7 @@ int Init()
 		injector::MakeNOP(0x0060BAB7, 10, true);
 	}*/
 	
-	// Expand Memory Pools (ty Berkay)
+	// Expand Memory Pools (ty Berkay and Aero_)
 	if (ExpandMemoryPools)
 	{
 		injector::WriteMemory<int>(0x61D553, 0x2C8000, true); // GManager::GetVaultAllocator (0x2C8000)
@@ -331,8 +461,26 @@ int Init()
 
 		injector::WriteMemory<DWORD>(0xA60DA0, 0x0BE6E0, true); // FEngMemoryPoolSize (InitFEngMemoryPool)
 		injector::WriteMemory<DWORD>(0xA62C48, 0x01CC00, true); // CarLoaderPoolSizes
+
+		// ePolySlotPool
+		injector::WriteMemory<DWORD>(0x55B503, 0x7D000, true); // eInitEngine
+	}
+
+	// Damage Parts Fix for Add-On Cop Cars
+	if (AddOnCopsDamageFix)
+	{
+		injector::MakeRangedNOP(0x7E627E, 0x7E62AB, true);
+		injector::MakeJMP(0x7E627E, AddOnCopsDamageFixCodeCave, true);
 	}
 	
+	// Fix Turbo/Supercharger
+	if (SuperChargerFix)
+	{
+		injector::MakeCALL(0x4B36C7, FECarRecord_GetRegion, true);
+		injector::MakeRangedNOP(0x4B36CE, 0x4B386A, true);
+		injector::MakeJMP(0x4B36CE, SuperChargerFixCodeCave, true);
+	}
+
 	return 0;
 }
 
