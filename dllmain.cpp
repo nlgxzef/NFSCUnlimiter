@@ -9,7 +9,7 @@
 #define SingleCarTypeInfoBlockSize 0xD0
 
 int CarArraySize, CarCount, ReplacementCar, TrafficCarCount;
-bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, OnlineLoginCrashFix, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix;
+bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, OnlineLoginCrashFix, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, AddOnOpponentsPartsFix;
 
 bool IsCop(BYTE CarTypeID)
 {
@@ -20,6 +20,7 @@ DWORD GetPVehicle = 0x412520;
 DWORD GetFrontend = 0x4ABF30;
 DWORD Attrib_Instance_dtInstance = 0x469870;
 DWORD bStringHash = 0x471050;
+DWORD RideInfo_SetRandomPart = 0x7DA970;
 
 void __declspec(naked) FECarRecord_GetRegion()
 {
@@ -334,6 +335,10 @@ void __declspec(naked) AddOnCopsDamageFixCodeCave()
 {
 	__asm
 	{
+		cmp eax, 0x55 // COPHELI
+		je jWindowDamage
+		cmp eax, 0x56 // COPMIDSIZEINT
+		je jWindowDamage
 		push eax // Car Type ID
 		call IsCop
 		add esp, 4
@@ -369,6 +374,36 @@ void __declspec(naked) SuperChargerFixCodeCave()
 	}
 }
 
+void __declspec(naked) ForceStockPartsOnAddOnsCodeCave()
+{
+	__asm
+	{
+		cmp [ecx], 95
+		jge jLessRandomParts // 95+ = Add-On
+		jmp jSetRandomParts
+		
+		jLessRandomParts:
+			cmp eax, 0x17 // BODY
+			je jCaveExit
+			cmp eax, 0x30 // SPOILER
+			je jCaveExit
+			cmp eax, 0x4D // ROOF_SCOOP
+			je jCaveExit
+			cmp eax, 0x4E // HOOD
+			je jCaveExit
+
+		jSetRandomParts :
+			push -1
+			push eax
+			call RideInfo_SetRandomPart
+
+		jCaveExit :
+			sub esi, ebx
+			push 0x7E19DD
+			retn
+	}
+}
+
 int Init()
 {
 	CIniReader Settings("NFSCUnlimiterSettings.ini");
@@ -384,6 +419,7 @@ int Init()
 	SecondaryLogoFix = Settings.ReadInteger("Fixes", "SecondaryLogoFix", 1) == 1;
 	AddOnCopsDamageFix = Settings.ReadInteger("Fixes", "AddOnCopsDamageFix", 1) == 1;
 	SuperChargerFix = Settings.ReadInteger("Fixes", "SuperChargerFix", 1) == 1;
+	AddOnOpponentsPartsFix = Settings.ReadInteger("Fixes", "AddOnOpponentsPartsFix", 1) == 1;
 	//OnlineLoginCrashFix = Settings.ReadInteger("Fixes", "OnlineLoginCrashFix", 1) == 1;
 	// Misc
 	ExpandMemoryPools = Settings.ReadInteger("Misc", "ExpandMemoryPools", 0) == 1;
@@ -479,6 +515,13 @@ int Init()
 		injector::MakeCALL(0x4B36C7, FECarRecord_GetRegion, true);
 		injector::MakeRangedNOP(0x4B36CE, 0x4B386A, true);
 		injector::MakeJMP(0x4B36CE, SuperChargerFixCodeCave, true);
+	}
+
+	// Force Stock Parts for Add-On Cars to fix Missing Parts on Opponents' Cars
+	if (AddOnOpponentsPartsFix)
+	{
+		injector::MakeRangedNOP(0x7E19D3, 0x7E19DD, true);
+		injector::MakeJMP(0x7E19D3, ForceStockPartsOnAddOnsCodeCave, true);
 	}
 
 	return 0;
