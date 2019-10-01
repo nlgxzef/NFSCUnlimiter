@@ -9,7 +9,7 @@
 #define SingleCarTypeInfoBlockSize 0xD0
 
 int CarArraySize, CarCount, ReplacementCar, TrafficCarCount;
-bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, OnlineLoginCrashFix, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, AddOnOpponentsPartsFix;
+bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, OnlineLoginCrashFix, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, AddOnOpponentsPartsFix, UnlimitedPresetCars;
 
 bool IsCop(BYTE CarTypeID)
 {
@@ -412,6 +412,7 @@ int Init()
 	//CarCount = Settings.ReadInteger("Main", "CarModelIDLimit", 127);
 	ReplacementCar = Settings.ReadInteger("Main", "ReplacementModel", 1);
 	TrafficCarCount = Settings.ReadInteger("Main", "TrafficCarCount", 20);
+	UnlimitedPresetCars = Settings.ReadInteger("Fixes", "UnlimitedPresetCars", 1) == 1;
 	// Fixes
 	DisappearingWheelsFix = Settings.ReadInteger("Fixes", "DisappearingWheelsFix", 1) == 1;
 	MissingPartsFix = Settings.ReadInteger("Fixes", "MissingPartsFix", 1) == 1;
@@ -522,6 +523,12 @@ int Init()
 	{
 		injector::MakeRangedNOP(0x7E19D3, 0x7E19DD, true);
 		injector::MakeJMP(0x7E19D3, ForceStockPartsOnAddOnsCodeCave, true);
+	}
+
+	// Remove GlobalB.bun/lzc, BCHUNK_FEPRESETCARS count limiter
+	if (UnlimitedPresetCars)
+	{
+		injector::WriteMemory<BYTE>(0x004D1723, 0xEB, true);
 	}
 
 	return 0;
