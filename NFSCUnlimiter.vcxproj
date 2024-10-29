@@ -66,8 +66,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)*.asi" "G:\Games\Need for Speed Carbon\scripts"  /y
-copy "$(TargetDir)*.pdb" "G:\Games\Need for Speed Carbon\scripts"  /y</Command>
+      <Command>copy "$(TargetDir)*.asi" "C:\nlgxzef Works\Games\NFS Carbon\scripts"  /y
+copy "$(TargetDir)*.pdb" "C:\nlgxzef Works\Games\NFS Carbon\scripts"  /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -88,11 +88,12 @@ copy "$(TargetDir)*.pdb" "G:\Games\Need for Speed Carbon\scripts"  /y</Command>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)*.asi" "G:\Games\Need for Speed Carbon\scripts"  /y</Command>
+      <Command>copy "$(TargetDir)*.asi" "C:\nlgxzef Works\Games\NFS Carbon\scripts"  /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Attrib.h" />
+    <ClInclude Include="CarMemoryInfo.h" />
     <ClInclude Include="CodeCaves.h" />
     <ClInclude Include="DALFeVehicle.h" />
     <ClInclude Include="FEPackage.h" />

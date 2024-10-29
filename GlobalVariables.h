@@ -6,3 +6,5 @@
 #define _gFECarRecord 0xBBABAC
 #define _gTheDALManager 0xA8AD30
 #define _WorldTimer 0xA99C3C
+
+int* CarInfoResourceCost;

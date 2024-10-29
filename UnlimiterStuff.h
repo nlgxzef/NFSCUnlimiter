@@ -14,6 +14,7 @@ bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix
 #include "PursuitInformation.h"
 #include "GRacerInfo.h"
 #include "Helpers.h"
+#include "CarMemoryInfo.h"
 #include "CodeCaves.h"
 
 int Init()
@@ -67,6 +68,7 @@ int Init()
 	injector::MakeJMP(0x6C092B, CarCountCodeCave_PVehicle_Resource_Resource, true);
 	injector::MakeJMP(0x4BAC61, CarCountCodeCave_FECustomizationRecord_SetInstalledPart, true);
 	injector::MakeJMP(0x4C4829, CarCountCodeCave_FECustomizationRecord_WriteRideIntoRecord, true);
+	injector::MakeCALL(0x6B77BD, CarInfo_InitResourceCost, true); // InitializeEverything
 
 	// Replacement model if model is not found in the array
 	injector::WriteMemory<int>(0x7B0279, ReplacementCar, true); // CarPartDatabase::GetCarType

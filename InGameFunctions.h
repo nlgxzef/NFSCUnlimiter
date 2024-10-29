@@ -7,6 +7,8 @@
 unsigned int(*bStringHash)(char* StringToHash) = (unsigned int(*)(char*))0x471050;
 unsigned int(*stringhash32)(char* StringToHash) = (unsigned int(*)(char*))0x606B60;
 bool(*bFileExists)(char* Path) = (bool(*)(char*))0x6B2360;
+int(*bFileSize)(char* Path) = (int(*)(char*))0x6B2300;
+void* (*j_malloc)(size_t) = (void* (*)(size_t))0x6A1550;
 DWORD*(*Attrib_DefaultDataArea)(unsigned int Unk) = (DWORD * (*)(unsigned int))0x678410;
 void(__thiscall* Attrib_Instance_ctInstance)(DWORD* Attrib, DWORD* Collection, unsigned int msgPort) = (void(__thiscall*)(DWORD*, DWORD*, unsigned int))0x461340;
 void(__thiscall* Attrib_Instance_dtInstance)(DWORD* Attrib) = (void(__thiscall*)(DWORD*))0x469870;
@@ -33,3 +35,4 @@ int(*bSNPrintf)(char* buf, int len, char const* fmt, ...) = (int(*)(char*, int, 
 void(__thiscall* PursuitInformation_ShowFlashers_Game)(DWORD* PursuitInformation, DWORD* IPlayer, bool ShouldShowBountyMessage) = (void(__thiscall*)(DWORD*, DWORD*, bool))0x5D3CF0;
 bool(*DoesStringExist)(unsigned int StringHash) = (bool(*)(unsigned int))0x578670;
 void(*InitSpaceNodes)() = (void(*)())0x7AFEF0;
+void(*CarInfo_InitResourceCost_Game)() = (void(*)())0x7B11F0;
