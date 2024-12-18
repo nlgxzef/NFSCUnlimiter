@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Attrib.h" />
+    <ClInclude Include="CarMemoryInfo.h" />
+    <ClInclude Include="CodeCaves.h" />
+    <ClInclude Include="DALFeVehicle.h" />
+    <ClInclude Include="FEPackage.h" />
+    <ClInclude Include="GlobalVariables.h" />
+    <ClInclude Include="GRacerInfo.h" />
+    <ClInclude Include="Helpers.h" />
+    <ClInclude Include="InGameFunctions.h" />
+    <ClInclude Include="PursuitInformation.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="UnlimiterStuff.h" />
+    <ClInclude Include="FECustomizationRecord.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="Slots.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="CarPartDatabase.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="DBCarPart.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="PresetCar.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="Defines.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="FECarRecord.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="FEManager.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="MemCard.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="Presitter.h">
+      <Filter>Presitter</Filter>
+    </ClInclude>
+    <ClInclude Include="FEStateManager.h">
+      <Filter>SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="DumpCarPreset.h">
+      <Filter>Presitter</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadCarPreset.h">
+      <Filter>Presitter</Filter>
+    </ClInclude>
+    <ClInclude Include="SaveCarPreset.h">
+      <Filter>Presitter</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="NFSCUnlimiter.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Presitter">
+      <UniqueIdentifier>{f8e7aa3c-d6c3-4e07-91fb-9f3903c4dd32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDK">
+      <UniqueIdentifier>{0674f8aa-2af9-472c-b553-bbe9eb356836}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

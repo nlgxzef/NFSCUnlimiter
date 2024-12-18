@@ -6,7 +6,7 @@
 #include "includes\IniReader.h"
 
 int CarArraySize, CarCount, ReplacementCar, TrafficCarCount;
-bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, ForceStockPartsOnAddOnOpponents, UnlimitedPresetCars, FNGFix, NoPartsCrashFix, RimPaintFix, CopDestroyedStringHook;
+bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, ForceStockPartsOnAddOnOpponents, UnlimitedPresetCars, FNGFix, NoPartsCrashFix, RimPaintFix, CopDestroyedStringHook, Presitter;
 
 #include "InGameFunctions.h"
 #include "FEPackage.h"
@@ -16,6 +16,7 @@ bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix
 #include "Helpers.h"
 #include "CarMemoryInfo.h"
 #include "CodeCaves.h"
+#include "Presitter.h"
 
 int Init()
 {
@@ -40,6 +41,7 @@ int Init()
 	// Misc
 	ExpandMemoryPools = Settings.ReadInteger("Misc", "ExpandMemoryPools", 0) != 0;
 	ForceStockPartsOnAddOnOpponents = Settings.ReadInteger("Misc", "ForceStockPartsOnAddOnOpponents", 0) != 0;
+	Presitter = Settings.ReadInteger("Misc", "Presitter", 0) != 0;
 
 	if (MissingPartsFix)
 	{
@@ -176,6 +178,18 @@ int Init()
 	if (NoPartsCrashFix)
 	{
 		injector::MakeJMP(0x8401F9, NoPartsFixCodeCave, true); // FeCustomizeParts::ShowProperHelpBar
+	}
+
+	if (Presitter)
+	{
+		injector::WriteMemory(0x009D43A4, SaveProfile);
+		injector::WriteMemory(0x009E8D54, SaveProfile);
+
+		injector::WriteMemory(0x009D441C, LoadProfile);
+		injector::WriteMemory(0x009E8DCC, LoadProfile);
+
+		injector::MakeJMP(0x008462A0, FECustomizeStateManager_HandlePadButton3);
+		injector::WriteMemory(0x009FAD80, FECustomizeStateManager_HandleButtonPressed);
 	}
 
 	return 0;
