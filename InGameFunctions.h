@@ -36,3 +36,4 @@ void(__thiscall* PursuitInformation_ShowFlashers_Game)(DWORD* PursuitInformation
 bool(*DoesStringExist)(unsigned int StringHash) = (bool(*)(unsigned int))0x578670;
 void(*InitSpaceNodes)() = (void(*)())0x7AFEF0;
 void(*CarInfo_InitResourceCost_Game)() = (void(*)())0x7B11F0;
+char* (__cdecl* GetCarTypeName)(int) = (char* (__cdecl*)(int))0x007B0290;
