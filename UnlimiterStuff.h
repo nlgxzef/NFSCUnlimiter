@@ -3,45 +3,57 @@
 #include <string>
 #include <windows.h>
 #include "includes\injector\injector.hpp"
-#include "includes\IniReader.h"
+#include "includes\ini.h"
 
 int CarArraySize, CarCount, ReplacementCar, TrafficCarCount;
-bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, ForceStockPartsOnAddOnOpponents, UnlimitedPresetCars, FNGFix, NoPartsCrashFix, RimPaintFix, CopDestroyedStringHook, Presitter;
+bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, ForceStockPartsOnAddOnOpponents, UnlimitedPresetCars, EnableFNGFixes, NoPartsCrashFix, RimPaintFix, CopDestroyedStringHook, Presitter;
 
 #include "InGameFunctions.h"
-#include "FEPackage.h"
+#include "GlobalVariables.h"
 #include "DALFeVehicle.h"
 #include "PursuitInformation.h"
 #include "GRacerInfo.h"
-#include "Helpers.h"
+#include "FEPackage.h"
 #include "CarMemoryInfo.h"
+#include "UnlimiterData.h"
 #include "CodeCaves.h"
 #include "Presitter.h"
+#include "MemcardManager.h"
 
 int Init()
 {
-	CIniReader Settings("NFSCUnlimiterSettings.ini");
+	CurrentWorkingDirectory = std::filesystem::current_path();
+
+	auto UnlimiterSettings = CurrentWorkingDirectory / "NFSCUnlimiterSettings.ini";
+	mINI::INIFile NFSCUnlimiterSettingsINIFile(UnlimiterSettings.string());
+	mINI::INIStructure Settings;
+	NFSCUnlimiterSettingsINIFile.read(Settings);
 
 	// Main
-	//CarCount = Settings.ReadInteger("Main", "CarModelIDLimit", 127);
-	ReplacementCar = Settings.ReadInteger("Main", "ReplacementModel", 1);
-	TrafficCarCount = Settings.ReadInteger("Main", "TrafficCarCount", 10);
-	UnlimitedPresetCars = Settings.ReadInteger("Fixes", "UnlimitedPresetCars", 0) != 0;
-	CopDestroyedStringHook = Settings.ReadInteger("Main", "EnableCopDestroyedStringHook", 1) != 0;
+	ReplacementCar = mINI_ReadInteger(Settings, "Main", "ReplacementModel", 1);
+	//TrafficCarCount = mINI_ReadInteger(Settings, "Main", "TrafficCarCount", 10);
+	UnlimitedPresetCars = mINI_ReadInteger(Settings, "Fixes", "UnlimitedPresetCars", 0) != 0;
+	CopDestroyedStringHook = mINI_ReadInteger(Settings, "Main", "EnableCopDestroyedStringHook", 1) != 0;
+	Presitter = mINI_ReadInteger(Settings, "Main", "EnablePresitter", 1) != 0;
+
 	// Fixes
-	DisappearingWheelsFix = Settings.ReadInteger("Fixes", "DisappearingWheelsFix", 1) != 0;
-	MissingPartsFix = Settings.ReadInteger("Fixes", "MissingPartsFix", 1) != 0;
-	RimPaintFix = Settings.ReadInteger("Fixes", "RimPaintFix", 0) != 0;
-	VinylsFix = Settings.ReadInteger("Fixes", "VinylsFix", 1) != 0;
-	SecondaryLogoFix = Settings.ReadInteger("Fixes", "SecondaryLogoFix", 1) != 0;
-	AddOnCopsDamageFix = Settings.ReadInteger("Fixes", "AddOnCopsDamageFix", 1) != 0;
-	SuperChargerFix = Settings.ReadInteger("Fixes", "SuperChargerFix", 1) != 0;
-	FNGFix = Settings.ReadInteger("Fixes", "FNGFix", 1) != 0;
-	NoPartsCrashFix = Settings.ReadInteger("Fixes", "NoPartsCrashFix", 1) != 0;
+	DisappearingWheelsFix = mINI_ReadInteger(Settings, "Fixes", "DisappearingWheelsFix", 1) != 0;
+	MissingPartsFix = mINI_ReadInteger(Settings, "Fixes", "MissingPartsFix", 1) != 0;
+	RimPaintFix = mINI_ReadInteger(Settings, "Fixes", "RimPaintFix", 0) != 0;
+	VinylsFix = mINI_ReadInteger(Settings, "Fixes", "VinylsFix", 1) != 0;
+	SecondaryLogoFix = mINI_ReadInteger(Settings, "Fixes", "SecondaryLogoFix", 1) != 0;
+	AddOnCopsDamageFix = mINI_ReadInteger(Settings, "Fixes", "AddOnCopsDamageFix", 1) != 0;
+	SuperChargerFix = mINI_ReadInteger(Settings, "Fixes", "SuperChargerFix", 1) != 0;
+	EnableFNGFixes = mINI_ReadInteger(Settings, "Fixes", "FNGFix", 1) != 0;
+	NoPartsCrashFix = mINI_ReadInteger(Settings, "Fixes", "NoPartsCrashFix", 1) != 0;
+
 	// Misc
-	ExpandMemoryPools = Settings.ReadInteger("Misc", "ExpandMemoryPools", 0) != 0;
-	ForceStockPartsOnAddOnOpponents = Settings.ReadInteger("Misc", "ForceStockPartsOnAddOnOpponents", 0) != 0;
-	Presitter = Settings.ReadInteger("Misc", "Presitter", 0) != 0;
+	ExpandMemoryPools = mINI_ReadInteger(Settings, "Misc", "ExpandMemoryPools", 0) != 0;
+	ForceStockPartsOnAddOnOpponents = mINI_ReadInteger(Settings, "Misc", "ForceStockPartsOnAddOnOpponents", 0) != 0;
+
+	// Check compatibility
+	EMPCompatibility = GetModuleHandleA("ExpandMemoryPools.asi") ? 1 : 0;
+	LimitAdjusterCompatibility = GetModuleHandleA("NFSCLimitAdjuster.asi") ? 1 : 0;
 
 	if (MissingPartsFix)
 	{
@@ -84,16 +96,6 @@ int Init()
 		injector::WriteMemory<unsigned char>(0x7C68F2, 0xEB, true); // VinylSystem::CarAlignmentDB::GetTransform
 	}
 
-	// Traffic Pattern Unlimiter
-	injector::WriteMemory<BYTE>(0x412ADE, TrafficCarCount, true); // AITrafficManager::TrafficPatternTimersClear (SpawnTraffic)
-	injector::WriteMemory<int>(0x412AE4, TrafficCarCount, true); // AITrafficManager::TrafficPatternTimersClear (SpawnTraffic)
-	injector::WriteMemory<BYTE>(0x422834, TrafficCarCount, true); // AITrafficManager::NextSpawn
-	injector::WriteMemory<int>(0x422839, TrafficCarCount, true); // AITrafficManager::NextSpawn
-	injector::WriteMemory<BYTE>(0x412B75, TrafficCarCount, true); // AITrafficManager::TrafficPatternTimersInit
-	injector::WriteMemory<int>(0x412B7B, TrafficCarCount, true); // AITrafficManager::TrafficPatternTimersInit
-	injector::WriteMemory<BYTE>(0x412C6A, TrafficCarCount, true); // AITrafficManager::TrafficPatternTimersUpdate
-	injector::WriteMemory<int>(0x412C70, TrafficCarCount, true); // AITrafficManager::TrafficPatternTimersUpdate
-
 	// Check the ini file for destroyed cops messages
 	if (CopDestroyedStringHook)
 	{
@@ -113,8 +115,7 @@ int Init()
 	}
 
 	// Expand Memory Pools (ty Berkay and Aero_)
-	bool ExpandMemoryASIExists = DoesFileExist("ExpandMemoryPools.asi") || DoesFileExist("scripts\\ExpandMemoryPools.asi");
-	if (ExpandMemoryPools && !ExpandMemoryASIExists)
+	if (ExpandMemoryPools && !EMPCompatibility)
 	{
 		injector::WriteMemory<int>(0x61D553, 0x2C8000, true); // GManager::GetVaultAllocator (0x2C8000)
 		injector::WriteMemory<int>(0x61D573, 0x2C8000, true);
@@ -169,7 +170,7 @@ int Init()
 	injector::MakeCALL(0x6B783F, InitSpaceNodesHook, true); // Count racers after InitSpaceNodes
 
 	// Clone objects in FNG where needed
-	if (FNGFix)
+	if (EnableFNGFixes)
 	{
 		injector::MakeCALL(0x600564, CloneObjectstoShowMoreItemsInMenu, true); // FEPackageReader::Load
 		//injector::MakeJMP(0x85FBE6, AddOnPartsFixCodeCave, true);
@@ -180,17 +181,33 @@ int Init()
 		injector::MakeJMP(0x8401F9, NoPartsFixCodeCave, true); // FeCustomizeParts::ShowProperHelpBar
 	}
 
+	// Presitter: Dump/load presets when the profile is saved/loaded to work issues around with DBCarPart changes.
 	if (Presitter)
 	{
+		// Saving
 		injector::WriteMemory(0x009D43A4, SaveProfile);
 		injector::WriteMemory(0x009E8D54, SaveProfile);
+		//hb_MemcardManager_SaveDone.fun = reinterpret_cast<int(__fastcall*)(DWORD*, void*, char const*)>(*(DWORD*)0x9D4308);
+		//injector::WriteMemory(0x9D4308, &MemcardManager_SaveDone, true); // MemcardManager::vtable
+		//injector::WriteMemory(0x9E8CB8, &MemcardManager_SaveDone, true); // PCMemcardManager::vtable??
 
+		// Loading
 		injector::WriteMemory(0x009D441C, LoadProfile);
 		injector::WriteMemory(0x009E8DCC, LoadProfile);
+		//hb_MemcardManager_LoadDone.fun = reinterpret_cast<int(__fastcall*)(DWORD*, void*, char const*)>(*(DWORD*)0x9D4314);
+		//injector::WriteMemory(0x9D4314, &MemcardManager_LoadDone, true); // MemcardManager::vtable
+		//injector::WriteMemory(0x9E8CC4, &MemcardManager_LoadDone, true); // PCMemcardManager::vtable??
 
+		// Dump Single Preset
 		injector::MakeJMP(0x008462A0, FECustomizeStateManager_HandlePadButton3);
 		injector::WriteMemory(0x009FAD80, FECustomizeStateManager_HandleButtonPressed);
+
+		// TODO: Add deleting and use hook_back wherever possible
 	}
+
+#ifdef _DEBUG
+	injector::WriteMemory(0x00A85340, 1, true); // bReleasePrintf
+#endif
 
 	return 0;
 }

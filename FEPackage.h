@@ -1,9 +1,9 @@
 #include "stdio.h"
 #include "InGameFunctions.h"
-#include "includes\IniReader.h"
+#include "Helpers.h"
+#include "includes\ini.h"
 
 char ObjectName[64], ObjectPrefix[64];
-char CloneName[64], ClonePrefix[64];
 char FNGFixName[8], FNGChildName[8];
 
 // 0x600564
@@ -11,21 +11,24 @@ bool __fastcall CloneObjectstoShowMoreItemsInMenu(DWORD* FEPackage, void* edx_un
 {
 	bool result = FEPackage_Startup(FEPackage, FEGameInterface);
 	int i;
-	DWORD* CloneTarget, *CloneDest, *CloneTargetChild, *CloneChild, *CloneChildLast;
+	DWORD* CloneTarget, * CloneDest, * CloneTargetChild, * CloneChild, * CloneChildLast;
 
-	CIniReader FNGFixesINI("UnlimiterData\\_FNGFixes.ini");
+	auto FNGFixesPath = CurrentWorkingDirectory / "UnlimiterData" / "_FNGFixes.ini";
+	mINI::INIFile FNGFixesINIFile(FNGFixesPath.string());
+	mINI::INIStructure FNGFixesINI;
+	FNGFixesINIFile.read(FNGFixesINI);
 
-	int FNGFixesCount = FNGFixesINI.ReadInteger("FNGFixes", "NumberOfFNGFixes", -1);
+	int FNGFixesCount = mINI_ReadInteger(FNGFixesINI, "FNGFixes", "NumberOfFNGFixes", -1);
 	if (FNGFixesCount == -1) return result;
 
 	for (int FNGFixID = 1; FNGFixID <= FNGFixesCount; FNGFixID++)
 	{
 		sprintf(FNGFixName, "FNG%d", FNGFixID);
-		if (stricmp((char*)FEPackage[3], FNGFixesINI.ReadString(FNGFixName, "FNGName", "")) == 0)
+		if (stricmp((char*)FEPackage[3], mINI_ReadString(FNGFixesINI, FNGFixName, "FNGName", "")) == 0)
 		{
-			int NewNumberOfObjects = FNGFixesINI.ReadInteger(FNGFixName, "NumberOfObjects", -1);
+			int NewNumberOfObjects = mINI_ReadInteger(FNGFixesINI, FNGFixName, "NumberOfObjects", -1);
 
-			sprintf(ObjectPrefix, FNGFixesINI.ReadString(FNGFixName, "ObjectPrefix", ""));
+			sprintf(ObjectPrefix, mINI_ReadString(FNGFixesINI, FNGFixName, "ObjectPrefix", ""));
 			strcat(ObjectPrefix, "%d");
 
 			// Get Last available object
@@ -66,29 +69,25 @@ bool __fastcall CloneObjectstoShowMoreItemsInMenu(DWORD* FEPackage, void* edx_un
 					{
 						int ChildrenCount = CloneDest[24]; // FEGroup -> children.NumElements
 						CloneChild = (DWORD*)CloneDest[25]; // FEGroup -> children.Head
-						CloneTargetChild = (DWORD*)CloneTarget[25]; // FEGroup -> children.Head
 						CloneChildLast = (DWORD*)CloneDest[26]; // FEGroup -> children.Tail
 
 						for (int c = 1; c <= ChildrenCount; c++)
 						{
 							if (CloneChild)
 							{
-								CloneChild[4] = CloneTargetChild[4]; // FEObject -> NameHash, copy the child hash from target obj
-
 								sprintf(FNGChildName, "Child%d", c);
-								
-								sprintf(ClonePrefix, FNGFixesINI.ReadString(FNGFixName, FNGChildName, ""));
-								if (strcmp(ClonePrefix, ""))
+
+								sprintf(ObjectPrefix, mINI_ReadString(FNGFixesINI, FNGFixName, FNGChildName, ""));
+								if (strcmp(ObjectPrefix, ""))
 								{
-									strcat(ClonePrefix, "%d");
-									sprintf(CloneName, ClonePrefix, i + j);
-									CloneChild[4] = bStringHash(CloneName); // FEObject -> NameHash
+									strcat(ObjectPrefix, "%d");
+									sprintf(ObjectName, ObjectPrefix, i + j);
+									CloneChild[4] = bStringHash(ObjectName); // FEObject -> NameHash
 								}
-								
+
 								if (CloneChild == CloneChildLast) break;
-								
+
 								CloneChild = (DWORD*)CloneChild[1]; // FEObject -> Next
-								CloneTargetChild = (DWORD*)CloneTargetChild[1]; // FEObject -> Next
 							}
 						}
 					}

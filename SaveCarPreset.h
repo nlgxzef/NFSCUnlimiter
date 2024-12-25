@@ -9,7 +9,7 @@
 
 void FillAutosculptZone(BYTE* zones, int zone, FECustomizationRecord* record)
 {
-	for (int i = 0; i < 11; i++)
+	for (int i = 0; i < NumAutosculptMorphTargets; i++)
 	{
 		zones[i] = record->GetSculptZoneAmount(zone, i) * 255.0f;
 	}
@@ -80,7 +80,7 @@ void FillCarPreset(PresetCar* preset, FECustomizationRecord* record, FECarRecord
 	FillAutosculptZone(preset->Autosculpt.Exhaust, ZoneExhaust, record);
 	FillAutosculptZone(preset->Autosculpt.ChopTop, ZoneRoof, record);
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < NumVinylLayers; i++)
 	{
 		FillVinyl(preset->Vinyls + i, i, record);
 	}
@@ -93,16 +93,32 @@ void FillCarPreset(PresetCar* preset, FECarRecord* carRecord)
 	FillCarPreset(preset, record, carRecord);
 }
 
-void SavePresets(char* presetPath)
+void SavePresets(char* PresetPath)
 {
+	char FilePath[MAX_PATH];
+
 	auto carDB = FEManager::Instance()->GetPlayerCarDB();
 
-	FILE* PresetFile = fopen(presetPath, "wb");
-	if (PresetFile)
+	sprintf(FilePath, "%s\\SkipSave", PresetPath);
+	FILE* SkipFile = fopen(FilePath, "rb");
+
+	if (!SkipFile && carDB)
 	{
-		int count = 0;
-		fwrite(&count, 4, 1, PresetFile);
-		for (int i = 0; i < 200; i++)
+		// Delete all files first
+		for (int i = 0; i < NumFECustomizationRecords; i++)
+		{
+			// Create file handle
+			sprintf(FilePath, "%s\\%02d.bin", PresetPath, i);
+			FILE* PresetFile = fopen(FilePath, "rb");
+
+			if (PresetFile)
+			{
+				fclose(PresetFile); // Close the file
+				remove(FilePath); // Delete the file we just opened
+			}
+		}
+
+		for (int i = 0; i < NumFECarRecords; i++)
 		{
 			auto carRecord = carDB->GetCarByIndex(i);
 			if (carRecord->Handle != 0xFFFFFFFF)
@@ -110,20 +126,30 @@ void SavePresets(char* presetPath)
 				auto record = carDB->GetCustomizationRecordByHandle(carRecord->Customization);
 				if (record)
 				{
-					PresetCar presetCar;
-					FillCarPreset(&presetCar, record, carRecord);
-					fwrite(&presetCar, sizeof(PresetCar), 1, PresetFile);
-					count++;
+					// Create file handle
+					sprintf(FilePath, "%s\\%02d.bin", PresetPath, carRecord->Customization);
+					FILE* PresetFile = fopen(FilePath, "wb");
+
+					if (PresetFile)
+					{
+
+						PresetCar presetCar;
+						memset(&presetCar, (BYTE)0, sizeof(presetCar)); // fill with 0s, C++ inits with 0xCC by default
+						FillCarPreset(&presetCar, record, carRecord);
+						sprintf(presetCar.CollectionName, "CUSTOMIZATION_RECORD_%02d", carRecord->Customization); // Preset Name
+						fwrite(&presetCar, sizeof(PresetCar), 1, PresetFile);
+
+						// Close the file
+						fclose(PresetFile);
+					}
 				}
 			}
 		}
-
-		// write actual count
-		fseek(PresetFile, 0, SEEK_SET);
-		fwrite(&count, 4, 1, PresetFile);
-
-		fclose(PresetFile);
+#ifdef _DEBUG
+	bReleasePrintf("Presitter: Saved customization records as preset data.\n");
+#endif
 	}
+	else fclose(SkipFile);
 }
 
 int __fastcall SaveProfile(MemCard* memcard, int, int a2)

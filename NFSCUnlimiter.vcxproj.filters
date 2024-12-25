@@ -61,6 +61,8 @@
     <ClInclude Include="SaveCarPreset.h">
       <Filter>Presitter</Filter>
     </ClInclude>
+    <ClInclude Include="UnlimiterData.h" />
+    <ClInclude Include="MemcardManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NFSCUnlimiter.rc" />

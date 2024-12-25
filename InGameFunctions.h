@@ -17,6 +17,7 @@ DWORD*(__thiscall* Attrib_Instance_GetAttributePointer)(DWORD* Attrib, unsigned 
 DWORD*(* Attrib_FindCollection)(unsigned int CollectionKey, unsigned int msgPort) = (DWORD*(*)(unsigned int, unsigned int))0x465930;
 void(__thiscall* Attrib_Gen_pvehicle_Create)(DWORD* Attrib_Gen_pvehicle, unsigned int CollectionKey, unsigned int msgPort) = (void(__thiscall*)(DWORD*, unsigned int, unsigned int))0x412520;
 void(__thiscall* Attrib_Gen_frontend_Create)(DWORD* Attrib_Gen_frontend, unsigned int CollectionKey, unsigned int msgPort) = (void(__thiscall*)(DWORD*, unsigned int, unsigned int))0x4ABF30;
+DWORD(*Attrib_StringToLowerCaseKey)(char const* str) = (DWORD(*)(char const*))0x463C10;
 bool(__thiscall* FEPackage_Startup)(DWORD* FEPackage, DWORD* FEGameInterface) = (bool(__thiscall*)(DWORD*, DWORD*))0x5F7B30;
 DWORD* (__thiscall* FEPackage_FindObjectByHash)(DWORD* FEPackage, unsigned int ObjectHash) = (DWORD * (__thiscall*)(DWORD*, unsigned int))0x5F3760;
 DWORD* (__thiscall* FEObject_Clone)(DWORD* FEObject, bool) = (DWORD * (__thiscall*)(DWORD*, bool))0x5FEB80;
@@ -37,3 +38,4 @@ bool(*DoesStringExist)(unsigned int StringHash) = (bool(*)(unsigned int))0x57867
 void(*InitSpaceNodes)() = (void(*)())0x7AFEF0;
 void(*CarInfo_InitResourceCost_Game)() = (void(*)())0x7B11F0;
 char* (__cdecl* GetCarTypeName)(int) = (char* (__cdecl*)(int))0x007B0290;
+int(*bReleasePrintf)(const char* format, ...) = (int(*)(const char*, ...))0x475BD0;

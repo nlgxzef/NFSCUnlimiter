@@ -7,7 +7,7 @@ struct ProfileData
 	BYTE unk[0x330];
 	char Folder[32];
 	char Name[32];
-	char Path[260];
+	char Path[MAX_PATH];
 };
 
 struct MemCard
@@ -17,7 +17,7 @@ struct MemCard
 
 	char* GetPresetPath()
 	{
-		static char PresetPath[260];
+		static char PresetPath[MAX_PATH];
 
 		ProfileData* profileData = *this->Profile;
 		sprintf(PresetPath, "%s\\%s\\PRESETS", profileData->Path, profileData->Folder);

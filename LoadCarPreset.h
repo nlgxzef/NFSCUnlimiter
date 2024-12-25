@@ -69,41 +69,68 @@ void UpdateCustomizationRecord(PresetCar* preset, FECustomizationRecord* record,
 		}
 	}
 
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < NumVinylLayers; i++)
 	{
 		UpdateVinyl(preset->Vinyls + i, i, record, carType);
 	}
 }
 
-void LoadPresets(char* presetPath)
+void LoadPresets(char* PresetPath)
 {
+	char FilePath[MAX_PATH];
+	int WrongCarCount = 0;
+
 	auto carDB = FEManager::Instance()->GetPlayerCarDB();
 
-	FILE* PresetFile = fopen(presetPath, "rb");
-	if (PresetFile)
+	sprintf(FilePath, "%s\\SkipLoad", PresetPath);
+	FILE* SkipFile = fopen(FilePath, "rb");
+
+	if (!SkipFile && carDB)
 	{
-		int count = 0;
-		fread(&count, 4, 1, PresetFile);
 
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < NumFECarRecords; i++)
 		{
-			PresetCar presetCar;
-			fread(&presetCar, sizeof(PresetCar), 1, PresetFile);
-
-			auto carHandle = std::stoul(presetCar.CollectionName);
-			auto carRecord = carDB->GetCarByHandle(carHandle);
-			if (carRecord)
+			auto carRecord = carDB->GetCarByIndex(i);
+			if (carRecord->Handle != 0xFFFFFFFF)
 			{
 				auto record = carDB->GetCustomizationRecordByHandle(carRecord->Customization);
 				if (record)
 				{
-					UpdateCustomizationRecord(&presetCar, record, carRecord);
+					// Create file handle
+					sprintf(FilePath, "%s\\%02d.bin", PresetPath, carRecord->Customization);
+					FILE* PresetFile = fopen(FilePath, "rb");
+
+					if (PresetFile)
+					{
+						PresetCar presetCar;
+						fread(&presetCar, sizeof(PresetCar), 1, PresetFile);
+
+						char* CarNameFromFEREC = GetCarTypeName(carRecord->GetType());
+						char* CarNameFromPRESET = presetCar.Model;
+
+						if (!strcmp(CarNameFromFEREC, CarNameFromPRESET)) // Check if it's the same car
+						{
+							auto record = carDB->GetCustomizationRecordByHandle(carRecord->Customization);
+							if (record)
+							{
+								UpdateCustomizationRecord(&presetCar, record, carRecord);
+							}
+						}
+						else WrongCarCount++;
+
+						// Close the file
+						fclose(PresetFile);
+					}
 				}
 			}
 		}
 
-		fclose(PresetFile);
+#ifdef _DEBUG
+		if (WrongCarCount) bReleasePrintf("Presitter: Loaded preset data over the customization records with %d errors.\n", WrongCarCount);
+		else bReleasePrintf("Presitter: Loaded preset data over the customization records.\n");
+#endif
 	}
+	else fclose(SkipFile);
 }
 
 int __fastcall LoadProfile(MemCard* memcard)

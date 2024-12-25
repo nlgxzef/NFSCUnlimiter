@@ -17,7 +17,7 @@ void FECustomizeStateManager_HandlePadButton3()
 		{
 			fwrite(&presetCar, sizeof(PresetCar), 1, PresetFile);
 			fclose(PresetFile);
-			FEDialogScreen::ShowOk("Successfully dumped car preset");
+			FEDialogScreen::ShowOk("Successfully dumped car preset"); // TODO: Use a proper language string with GetLocalizedString(bStringHash("PRESITTER_DUMP_SUCCESS"));
 		}
 	}
 

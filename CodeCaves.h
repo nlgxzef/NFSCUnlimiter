@@ -283,6 +283,10 @@ void __declspec(naked) DoUnlimiterStuffCodeCave()
 	injector::WriteMemory<int>(0x7B0270, CarCount * SingleCarTypeInfoBlockSize, true); // CarPartDatabase::GetCarType
 	injector::WriteMemory<int>(0x850819, CarCount * SingleCarTypeInfoBlockSize, true); // sub_850740
 
+	// load configs into UnlimiterData structs
+	LoadCopDestroyedStrings();
+	LoadFNGFixes();
+
 	// Continue
 	__asm
 	{

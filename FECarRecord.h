@@ -3,11 +3,13 @@
 
 struct FECarRecord
 {
-	unsigned int Handle;
-	unsigned int FEKey;
-	unsigned int VehicleKey;
-	unsigned int PresetKey;
-	unsigned int Customization;
+	DWORD Handle;
+	DWORD FEKey;
+	DWORD VehicleKey;
+	DWORD PresetKey;
+	BYTE Customization;
+	BYTE CareerHandle;
+	WORD Padd;
 
 	static FECarRecord* Instance()
 	{

@@ -1,6 +1,6 @@
 #include "stdio.h"
 #include "InGameFunctions.h"
-#include "includes\IniReader.h"
+#include "includes\ini.h"
 
 void __fastcall PursuitInformation_ShowFlashers(DWORD* PursuitInformation, void* EDX_Unused, DWORD* Player, bool ShouldShowBountyMessage)
 {
@@ -27,10 +27,7 @@ void __fastcall PursuitInformation_ShowFlashers(DWORD* PursuitInformation, void*
     float flt_9CA2C4 = *(float*)0x9CA2C4;
     float WorldTimer = *(float*)_WorldTimer;
 
-    CIniReader CopDestroyedStringsINI("UnlimiterData\\_CopDestroyedStrings.ini");
-    int CopDestroyedStringCount = CopDestroyedStringsINI.ReadInteger("CopDestroyedStrings", "NumberOfCopDestroyedStrings", -1);
-
-    if (CopDestroyedStringCount == -1) return PursuitInformation_ShowFlashers_Game(PursuitInformation, Player, ShouldShowBountyMessage);
+    if (CopDestroyedStrings.size() == 0) return PursuitInformation_ShowFlashers_Game(PursuitInformation, Player, ShouldShowBountyMessage);
 
     if (!PursuitInformation[24] && DALManager_GetInt((DWORD*)_gTheDALManager, 11011, &IsPlayerBusted, -1, -1, -1) && IsPlayerBusted)// GetIsPlayerBusted
     {
@@ -38,8 +35,8 @@ void __fastcall PursuitInformation_ShowFlashers(DWORD* PursuitInformation, void*
         _EFlasherGeneric = EventSys_Event_Allocate(36, 0);
         if (_EFlasherGeneric)
         {
-            BustedStringHash = bStringHash("BUSTED");
-            BustedString = GetLocalizedString(0x3D6C4706u);// HUD_BUSTED
+            BustedStringHash = bStringHash((char*)"BUSTED");
+            BustedString = GetLocalizedString(0x3D6C4706);// HUD_BUSTED
             PlayerIndex = (*(int(__thiscall**)(DWORD*))(*(DWORD*)Player + 28))(Player);
             EFlasherGeneric_ct(_EFlasherGeneric, PlayerIndex, BustedString, 0, BustedStringHash, 1, 1, 3);
         }
@@ -85,7 +82,7 @@ FlashBounty:
     if (Bounty > (double)*((float*)PursuitInformation + 30))
     {
         *((float*)PursuitInformation + 30) = Bounty;
-        BountyString = GetLocalizedString(0x3D00B540u);// HUD_BOUNTY
+        BountyString = GetLocalizedString(0x3D00B540);// HUD_BOUNTY
         bSNPrintf(StringBuffer, 64, aS00f, BountyString, Bounty);
         _EFlasherGeneric = EventSys_Event_Allocate(36, 0);
         if (_EFlasherGeneric)
@@ -104,15 +101,15 @@ FlashBounty:
         DALManager_GetInt((DWORD*)_gTheDALManager, 11018, &LastCopDestroyedBounty, -1, -1, -1);
 
         // Read from ini file
-        for (int i = 1; i <= CopDestroyedStringCount; i++)
+        for (int i = 1; i <= CopDestroyedStrings.size(); i++)
         {
             sprintf(StringID, "String%d", i);
-            if (stringhash32(CopDestroyedStringsINI.ReadString(StringID, "PVehicle", "")) == LastCopDestroyedType)
+            if (CopDestroyedStrings[i].PVehicle == LastCopDestroyedType)
             {
-                HudCopDestroyeedString = GetLocalizedString(bStringHash(CopDestroyedStringsINI.ReadString(StringID, "String", "ERROR_DEFAULT_STRING")));
+                HudCopDestroyeedString = GetLocalizedString(CopDestroyedStrings[i].StringHash);
                 break;
             }
-            if (i == CopDestroyedStringCount) HudCopDestroyeedString = 0;
+            if (i == CopDestroyedStrings.size()) HudCopDestroyeedString = 0;
         }
 
         ComboBounty = LastCopDestroyedMultiplier * LastCopDestroyedBounty;
@@ -121,7 +118,7 @@ FlashBounty:
         _EFlasherGeneric = EventSys_Event_Allocate(36, 0);
         if (_EFlasherGeneric)
         {
-            CopsDestroyedIconHash = bStringHash("COPS_DESTROYED");
+            CopsDestroyedIconHash = bStringHash((char*)"COPS_DESTROYED");
             PlayerIndex = (*(int(__thiscall**)(DWORD*))(*(DWORD*)Player + 28))(Player);
             EFlasherGeneric_ct(_EFlasherGeneric, PlayerIndex, StringBuffer, CopsDestroyedIconHash, 0x8AB83EDB, 1, 1, 2);
         }
