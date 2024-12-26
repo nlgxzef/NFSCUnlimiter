@@ -185,24 +185,25 @@ int Init()
 	if (Presitter)
 	{
 		// Saving
-		injector::WriteMemory(0x009D43A4, SaveProfile);
-		injector::WriteMemory(0x009E8D54, SaveProfile);
-		//hb_MemcardManager_SaveDone.fun = reinterpret_cast<int(__fastcall*)(DWORD*, void*, char const*)>(*(DWORD*)0x9D4308);
-		//injector::WriteMemory(0x9D4308, &MemcardManager_SaveDone, true); // MemcardManager::vtable
-		//injector::WriteMemory(0x9E8CB8, &MemcardManager_SaveDone, true); // PCMemcardManager::vtable??
+		//injector::WriteMemory(0x009D43A4, SaveProfile);
+		//injector::WriteMemory(0x009E8D54, SaveProfile);
+		hb_MemcardManager_SaveDone.fun = reinterpret_cast<int(__fastcall*)(MemCard*, void*, char const*)>(*(DWORD*)0x9D4308);
+		injector::WriteMemory(0x9D4308, &MemcardManager_SaveDone, true); // MemcardManager::vtable
+		injector::WriteMemory(0x9E8CB8, &MemcardManager_SaveDone, true); // PCMemcardManager::vtable??
 
 		// Loading
-		injector::WriteMemory(0x009D441C, LoadProfile);
-		injector::WriteMemory(0x009E8DCC, LoadProfile);
-		//hb_MemcardManager_LoadDone.fun = reinterpret_cast<int(__fastcall*)(DWORD*, void*, char const*)>(*(DWORD*)0x9D4314);
-		//injector::WriteMemory(0x9D4314, &MemcardManager_LoadDone, true); // MemcardManager::vtable
-		//injector::WriteMemory(0x9E8CC4, &MemcardManager_LoadDone, true); // PCMemcardManager::vtable??
+		//injector::WriteMemory(0x009D441C, LoadProfile);
+		//injector::WriteMemory(0x009E8DCC, LoadProfile);
+		hb_MemcardManager_LoadDone.fun = reinterpret_cast<int(__fastcall*)(MemCard*, void*, char const*)>(*(DWORD*)0x9D4314);
+		injector::WriteMemory(0x9D4314, &MemcardManager_LoadDone, true); // MemcardManager::vtable
+		injector::WriteMemory(0x9E8CC4, &MemcardManager_LoadDone, true); // PCMemcardManager::vtable??
 
 		// Dump Single Preset
 		injector::MakeJMP(0x008462A0, FECustomizeStateManager_HandlePadButton3);
 		injector::WriteMemory(0x009FAD80, FECustomizeStateManager_HandleButtonPressed);
 
-		// TODO: Add deleting and use hook_back wherever possible
+		// Deleting
+		hb_rmdir.fun = injector::MakeCALL(0x895AE2, Presitter_Delete, true).get(); // RealmcIface::MemcardInterfaceImpl::ProcessDelete
 	}
 
 #ifdef _DEBUG

@@ -135,7 +135,7 @@ void LoadPresets(char* PresetPath)
 
 int __fastcall LoadProfile(MemCard* memcard)
 {
-	FUNC(0x00595F90, int, __thiscall, _LoadProfile, void*);
+	FUNC(0x00595F90, int, __thiscall, _LoadProfile, void*); // MemcardManager::LoadSaveData(MemcardManager, void*)
 	int result = _LoadProfile(memcard);
 
 	LoadPresets(memcard->GetPresetPath());

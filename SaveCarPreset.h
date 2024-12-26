@@ -99,6 +99,8 @@ void SavePresets(char* PresetPath)
 
 	auto carDB = FEManager::Instance()->GetPlayerCarDB();
 
+	CreateDirectoryA(PresetPath, 0);
+
 	sprintf(FilePath, "%s\\SkipSave", PresetPath);
 	FILE* SkipFile = fopen(FilePath, "rb");
 
@@ -154,7 +156,7 @@ void SavePresets(char* PresetPath)
 
 int __fastcall SaveProfile(MemCard* memcard, int, int a2)
 {
-	FUNC(0x0058E120, int, __thiscall, _SaveProfile, void*, int);
+	FUNC(0x0058E120, int, __thiscall, _SaveProfile, void*, int); // MemcardManager::Save(MemcardManager, MemcardManager::eSaveType)
 	int result = _SaveProfile(memcard, a2);
 
 	SavePresets(memcard->GetPresetPath());

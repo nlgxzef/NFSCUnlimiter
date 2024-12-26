@@ -3,20 +3,20 @@
 #include "stdio.h"
 #include "InGameFunctions.h"
 
-static injector::hook_back<int(__fastcall*)(DWORD*, void*, char const*)> hb_MemcardManager_SaveDone;
-int __fastcall MemcardManager_SaveDone(DWORD* MemcardManager, void* EDX_Unused, char const* ProfileName)
+static injector::hook_back<int(__fastcall*)(MemCard*, void*, char const*)> hb_MemcardManager_SaveDone;
+int __fastcall MemcardManager_SaveDone(MemCard* memcard, void* EDX_Unused, char const* ProfileName)
 {
-	//Presitter_Save(ProfileName);
+	SavePresets(memcard->GetPresetPath());
 
-	return hb_MemcardManager_SaveDone.fun(MemcardManager, EDX_Unused, ProfileName);
+	return hb_MemcardManager_SaveDone.fun(memcard, EDX_Unused, ProfileName);
 }
 
-static injector::hook_back<int(__fastcall*)(DWORD*, void*, char const*)> hb_MemcardManager_LoadDone;
-int __fastcall MemcardManager_LoadDone(DWORD* MemcardManager, void* EDX_Unused, char const* ProfileName)
+static injector::hook_back<int(__fastcall*)(MemCard*, void*, char const*)> hb_MemcardManager_LoadDone;
+int __fastcall MemcardManager_LoadDone(MemCard* memcard, void* EDX_Unused, char const* ProfileName)
 {
-	int result = hb_MemcardManager_LoadDone.fun(MemcardManager, EDX_Unused, ProfileName);
+	int result = hb_MemcardManager_LoadDone.fun(memcard, EDX_Unused, ProfileName);
 
-	//Presitter_Load(ProfileName);
+	LoadPresets(memcard->GetPresetPath());
 
 	return result;
 }

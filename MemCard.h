@@ -20,7 +20,7 @@ struct MemCard
 		static char PresetPath[MAX_PATH];
 
 		ProfileData* profileData = *this->Profile;
-		sprintf(PresetPath, "%s\\%s\\PRESETS", profileData->Path, profileData->Folder);
+		sprintf(PresetPath, "%s\\%s\\Presets", profileData->Path, profileData->Folder);
 		return PresetPath;
 	}
 };
