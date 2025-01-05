@@ -63,6 +63,7 @@
     </ClInclude>
     <ClInclude Include="UnlimiterData.h" />
     <ClInclude Include="MemcardManager.h" />
+    <ClInclude Include="eModel.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NFSCUnlimiter.rc" />

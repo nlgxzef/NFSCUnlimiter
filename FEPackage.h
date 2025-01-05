@@ -4,6 +4,7 @@
 #include "includes\ini.h"
 
 char ObjectName[64], ObjectPrefix[64];
+char CloneName[64], ClonePrefix[64];
 char FNGFixName[8], FNGChildName[8];
 
 // 0x600564
@@ -69,6 +70,7 @@ bool __fastcall CloneObjectstoShowMoreItemsInMenu(DWORD* FEPackage, void* edx_un
 					{
 						int ChildrenCount = CloneDest[24]; // FEGroup -> children.NumElements
 						CloneChild = (DWORD*)CloneDest[25]; // FEGroup -> children.Head
+						CloneTargetChild = (DWORD*)CloneTarget[25]; // FEGroup -> children.Head
 						CloneChildLast = (DWORD*)CloneDest[26]; // FEGroup -> children.Tail
 
 						for (int c = 1; c <= ChildrenCount; c++)
@@ -77,17 +79,18 @@ bool __fastcall CloneObjectstoShowMoreItemsInMenu(DWORD* FEPackage, void* edx_un
 							{
 								sprintf(FNGChildName, "Child%d", c);
 
-								sprintf(ObjectPrefix, mINI_ReadString(FNGFixesINI, FNGFixName, FNGChildName, ""));
-								if (strcmp(ObjectPrefix, ""))
+								sprintf(ClonePrefix, mINI_ReadString(FNGFixesINI, FNGFixName, FNGChildName, ""));
+								if (strcmp(ClonePrefix, ""))
 								{
-									strcat(ObjectPrefix, "%d");
-									sprintf(ObjectName, ObjectPrefix, i + j);
-									CloneChild[4] = bStringHash(ObjectName); // FEObject -> NameHash
+									strcat(ClonePrefix, "%d");
+									sprintf(CloneName, ClonePrefix, i + j);
+									CloneChild[4] = bStringHash(CloneName); // FEObject -> NameHash
 								}
 
 								if (CloneChild == CloneChildLast) break;
 
 								CloneChild = (DWORD*)CloneChild[1]; // FEObject -> Next
+								CloneTargetChild = (DWORD*)CloneTargetChild[1]; // FEObject -> Next
 							}
 						}
 					}

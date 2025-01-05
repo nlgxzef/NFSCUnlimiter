@@ -102,6 +102,7 @@ copy "$(TargetDir)*.pdb" "C:\nlgxzef Works\Games\NFS Carbon\scripts"  /y</Comman
     <ClInclude Include="DBCarPart.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="DumpCarPreset.h" />
+    <ClInclude Include="eModel.h" />
     <ClInclude Include="FECarRecord.h" />
     <ClInclude Include="FECustomizationRecord.h" />
     <ClInclude Include="FEManager.h" />

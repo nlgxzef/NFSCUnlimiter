@@ -6,7 +6,7 @@
 #include "includes\ini.h"
 
 int CarArraySize, CarCount, ReplacementCar, TrafficCarCount;
-bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, ForceStockPartsOnAddOnOpponents, UnlimitedPresetCars, EnableFNGFixes, NoPartsCrashFix, RimPaintFix, CopDestroyedStringHook, Presitter;
+bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, ForceStockPartsOnAddOnOpponents, UnlimitedPresetCars, EnableFNGFixes, NoPartsCrashFix, RimPaintFix, CopDestroyedStringHook, Presitter, RideHeightFix, LightMaterialCrashFix, ChallengeSeriesOpponentNameFix;
 
 #include "InGameFunctions.h"
 #include "GlobalVariables.h"
@@ -15,6 +15,7 @@ bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix
 #include "GRacerInfo.h"
 #include "FEPackage.h"
 #include "CarMemoryInfo.h"
+#include "eModel.h"
 #include "UnlimiterData.h"
 #include "CodeCaves.h"
 #include "Presitter.h"
@@ -43,6 +44,9 @@ int Init()
 	VinylsFix = mINI_ReadInteger(Settings, "Fixes", "VinylsFix", 1) != 0;
 	SecondaryLogoFix = mINI_ReadInteger(Settings, "Fixes", "SecondaryLogoFix", 1) != 0;
 	AddOnCopsDamageFix = mINI_ReadInteger(Settings, "Fixes", "AddOnCopsDamageFix", 1) != 0;
+	ChallengeSeriesOpponentNameFix = mINI_ReadInteger(Settings, "Fixes", "ChallengeSeriesOpponentNameFix", 1) != 0;
+	LightMaterialCrashFix = mINI_ReadInteger(Settings, "Fixes", "LightMaterialCrashFix", 0) != 0;
+	RideHeightFix = mINI_ReadInteger(Settings, "Fixes", "RideHeightFix", 1) != 0;
 	SuperChargerFix = mINI_ReadInteger(Settings, "Fixes", "SuperChargerFix", 1) != 0;
 	EnableFNGFixes = mINI_ReadInteger(Settings, "Fixes", "FNGFix", 1) != 0;
 	NoPartsCrashFix = mINI_ReadInteger(Settings, "Fixes", "NoPartsCrashFix", 1) != 0;
@@ -134,6 +138,24 @@ int Init()
 	{
 		injector::MakeRangedNOP(0x7E627E, 0x7E62AB, true); // CarRenderInfo::CarRenderInfo
 		injector::MakeJMP(0x7E627E, AddOnCopsDamageFixCodeCave, true);
+	}
+
+	// Always add both ride height values, not just when it's close enough (from chassis and ecar) (ty rx)
+	if (RideHeightFix)
+	{
+		injector::MakeRangedNOP(0x7C1B6C, 0x7C1B72, true); // CarRenderConn::UpdateRenderMatrix
+	}
+
+	// (Attempt to) fix a crash with replacing light materials
+	if (LightMaterialCrashFix)
+	{
+		injector::MakeJMP(0x55C0B0, eModel_ReplaceLightMaterial, true); // eModel::ReplaceLightMaterial (22 references)
+	}
+
+	// Fix challenge series character names
+	if (ChallengeSeriesOpponentNameFix)
+	{
+		injector::MakeRangedNOP(0x62DA40, 0x62DA4D, true); // GRaceStatus::AddRacer
 	}
 
 	// Fix Turbo/Supercharger
