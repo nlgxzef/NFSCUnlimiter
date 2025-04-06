@@ -65,3 +65,17 @@ struct PresetCar
 
 	PresetCarVinyl Vinyls[20];
 };
+
+struct PresetCarAutosculptFloat
+{
+	float FrontBumper[11];
+	float RearBumper[11];
+	float Skirt[11];
+	float Wheels[11];
+	float Hood[11];
+	float Spoiler[11];
+	float RoofScoop[11];
+	float ChopTop[11];
+	float Exhaust[11];
+	float pad;
+};

@@ -24,6 +24,29 @@ void FECustomizeStateManager_HandlePadButton3()
 		{
 			fwrite(&presetCar, sizeof(PresetCar), 1, PresetFile);
 			fclose(PresetFile);
+
+			if (PresitterAutosculpt) // Save AutoSculpt as floating point values
+			{
+				// Create file handle
+				sprintf(FilePath, "%s_%s_%d_AS.bin", userProfile + 0x10, presetCar.Model, carRecord->Customization);
+				FILE* PresetASFile = fopen(FilePath, "wb");
+
+				if (PresetASFile)
+				{
+					PresetCarAutosculptFloat presetAS;
+					memset(&presetAS, (BYTE)0, sizeof(presetAS)); // fill with 0s
+					FillCarPresetASFloat(&presetAS, carRecord);
+					DWORD Header = bStringHash((char*)"BCHUNK_UNLIMITER_PRESITTERAUTOSCULPT");
+					fwrite(&Header, sizeof(DWORD), 1, PresetASFile);
+					DWORD Size = sizeof(presetAS);
+					fwrite(&Size, sizeof(DWORD), 1, PresetASFile);
+					fwrite(&presetAS, sizeof(presetAS), 1, PresetASFile);
+
+					// Close the file
+					fclose(PresetASFile);
+				}
+			}
+
 			FEDialogScreen::ShowOk(GetLocalizedString(bStringHash((char*)"PRESITTER_DUMP_SUCCESS")));
 		}
 		else

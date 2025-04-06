@@ -6,7 +6,7 @@
 #include "includes\ini.h"
 
 int CarArraySize, CarCount, ReplacementCar, TrafficCarCount;
-bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, ForceStockPartsOnAddOnOpponents, UnlimitedPresetCars, EnableFNGFixes, NoPartsCrashFix, RimPaintFix, CopDestroyedStringHook, Presitter, RideHeightFix, LightMaterialCrashFix, ChallengeSeriesOpponentNameFix;
+bool DisappearingWheelsFix, SecondaryLogoFix, ExpandMemoryPools, MissingPartsFix, VinylsFix, AddOnCopsDamageFix, SuperChargerFix, ForceStockPartsOnAddOnOpponents, UnlimitedPresetCars, EnableFNGFixes, NoPartsCrashFix, RimPaintFix, CopDestroyedStringHook, Presitter, RideHeightFix, LightMaterialCrashFix, ChallengeSeriesOpponentNameFix, PresitterAutosculpt;
 
 #include "InGameFunctions.h"
 #include "GlobalVariables.h"
@@ -50,6 +50,9 @@ int Init()
 	SuperChargerFix = mINI_ReadInteger(Settings, "Fixes", "SuperChargerFix", 1) != 0;
 	EnableFNGFixes = mINI_ReadInteger(Settings, "Fixes", "FNGFix", 1) != 0;
 	NoPartsCrashFix = mINI_ReadInteger(Settings, "Fixes", "NoPartsCrashFix", 1) != 0;
+
+	// Presitter
+	PresitterAutosculpt = mINI_ReadInteger(Settings, "Presitter", "SaveAutosculptAsFloats", 1) != 0;
 
 	// Misc
 	ExpandMemoryPools = mINI_ReadInteger(Settings, "Misc", "ExpandMemoryPools", 0) != 0;

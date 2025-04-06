@@ -11,7 +11,15 @@ void FillAutosculptZone(BYTE* zones, int zone, FECustomizationRecord* record)
 {
 	for (int i = 0; i < NumAutosculptMorphTargets; i++)
 	{
-		zones[i] = record->GetSculptZoneAmount(zone, i) * 255.0f;
+		zones[i] = record->GetSculptZoneAmount(zone, i) * 100.0f;
+	}
+}
+
+void FillAutosculptZoneFloat(float* zones, int zone, FECustomizationRecord* record)
+{
+	for (int i = 0; i < NumAutosculptMorphTargets; i++)
+	{
+		zones[i] = record->GetSculptZoneAmount(zone, i);
 	}
 }
 
@@ -93,6 +101,26 @@ void FillCarPreset(PresetCar* preset, FECarRecord* carRecord)
 	FillCarPreset(preset, record, carRecord);
 }
 
+void FillCarPresetASFloat(PresetCarAutosculptFloat* presetAS, FECustomizationRecord* record, FECarRecord* carRecord)
+{
+	FillAutosculptZoneFloat(presetAS->FrontBumper, ZoneFrontBumper, record);
+	FillAutosculptZoneFloat(presetAS->RearBumper, ZoneRearBumper, record);
+	FillAutosculptZoneFloat(presetAS->Skirt, ZoneSkirt, record);
+	FillAutosculptZoneFloat(presetAS->Spoiler, ZoneSpoiler, record);
+	FillAutosculptZoneFloat(presetAS->Wheels, ZoneFrontWheel, record);
+	FillAutosculptZoneFloat(presetAS->Hood, ZoneHood, record);
+	FillAutosculptZoneFloat(presetAS->RoofScoop, ZoneRoofScoop, record);
+	FillAutosculptZoneFloat(presetAS->Exhaust, ZoneExhaust, record);
+	FillAutosculptZoneFloat(presetAS->ChopTop, ZoneRoof, record);
+}
+
+void FillCarPresetASFloat(PresetCarAutosculptFloat* presetAS, FECarRecord* carRecord)
+{
+	auto carDB = FEManager::Instance()->GetPlayerCarDB();
+	auto record = carDB->GetCustomizationRecordByHandle(carRecord->Customization);
+	FillCarPresetASFloat(presetAS, record, carRecord);
+}
+
 void SavePresets(char* PresetPath)
 {
 	char FilePath[MAX_PATH];
@@ -143,6 +171,28 @@ void SavePresets(char* PresetPath)
 
 						// Close the file
 						fclose(PresetFile);
+					}
+
+					if (PresitterAutosculpt) // Save AutoSculpt as floating point values
+					{
+						// Create file handle
+						sprintf(FilePath, "%s\\%02d_AS.bin", PresetPath, carRecord->Customization);
+						FILE* PresetASFile = fopen(FilePath, "wb");
+
+						if (PresetASFile)
+						{
+							PresetCarAutosculptFloat presetAS;
+							memset(&presetAS, (BYTE)0, sizeof(presetAS)); // fill with 0s
+							FillCarPresetASFloat(&presetAS, record, carRecord);
+							DWORD Header = bStringHash((char*)"BCHUNK_UNLIMITER_PRESITTERAUTOSCULPT");
+							fwrite(&Header, sizeof(DWORD), 1, PresetASFile);
+							DWORD Size = sizeof(presetAS);
+							fwrite(&Size, sizeof(DWORD), 1, PresetASFile);
+							fwrite(&presetAS, sizeof(presetAS), 1, PresetASFile);
+
+							// Close the file
+							fclose(PresetASFile);
+						}
 					}
 				}
 			}
